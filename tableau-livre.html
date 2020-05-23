@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+
+    <title>Hello World!</title>
+
+    <link href="assets/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+    <link href="assets/css/core.css" rel="stylesheet" type="text/css" />
+    <link href="assets/css/components.css" rel="stylesheet" type="text/css" />
+    <link href="assets/css/icons.css" rel="stylesheet" type="text/css" />
+    <link href="assets/css/responsive.css" rel="stylesheet" type="text/css" />
+    <link href="assets/plugins/chosen/chosen.min.css" rel="stylesheet" type="text/css" />
+    <link href="assets/plugins/daterangepicker/daterangepicker.css" rel="stylesheet" type="text/css" />
+    <link href="assets/plugins/dataTables/jquery.dataTables.min.css" rel="stylesheet" type="text/css" />
+    <link href="assets/plugins/dataTables/dataTables.bootstrap.min.css" rel="stylesheet" type="text/css" />
+    <link href="assets/css/pages.css" rel="stylesheet" type="text/css" />
+    <link href="assets/css/new.css" rel="stylesheet" type="text/css" />
+
+
+</head>
+
+<body>
+    <div class="main_app">
+        <div class="left btn-primary waves-effect waves-light" id="left" onmouseout="closesidebar()" onmouseover="push()">
+            <ul>
+
+                <a href="index.html">
+                    <li class="item-menu">
+                        <i class="fa fa-book"></i>
+                        <span class="menu">livre</span>
+                    </li>
+                </a>
+                <a href="#">
+                    <li class="item-menu">
+                        <i class="fa fa-search"></i>
+                        <span class="menu">Categorie</span>
+                    </li>
+                </a>
+                <a href="#">
+                    <li class="item-menu">
+                        <i class="fa fa-exchange"></i>
+                        <span class="menu">PRÊT</span>
+                    </li>
+                </a>
+                <a href="#">
+                    <li class="item-menu">
+
+                        <i class="fa fa-users"></i>
+                        <span class="menu">Membres</span>
+                    </li>
+                </a>
+
+                <a href="gestion-loan.html">
+                    <li class="item-menu">
+                        <i class="fa fa-pie-chart"></i>
+                        <span class="menu"> Rapport Des Loans </span>
+                    </li>
+                </a>
+                <a href="#">
+                    <li class="item-menu">
+                        <i class="fa fa-plus"></i>
+                        <span class="menu"> Ajouter Livres </span>
+                    </li>
+                </a>
+                <a href="tableau-livre.html" id="productModal">
+                    <li class="item-menu" id="productModal">
+                        <i class="fa fa-plus"></i>
+                        <span class="menu" id="productModal"> Voir Tableau Livre </span>
+                    </li>
+                </a>
+
+            </ul>
+        </div>
+        <div class="container ">
+            <div id="loading"></div>
+
+            <div class="container " id="container">
+
+                <div class="row ">
+                    <div class="col-sm-12 ">
+
+                        <div class="button-list pull-left m-t-15 m-l-10 ">
+
+
+                            <button id="viewRefOrders " data-toggle="modal " data-target="#holdOrdersModal " type="button " class="btn btn-primary waves-effect waves-light ">
+                                <span class="btn-label "><i class="fa fa-shopping-basket "></i> </span> Open Tabs
+                        </button>
+
+                            <button id="viewCustomerOrders " data-toggle="modal " data-target="#customerModal " type="button " onclick="$(this).getCustomerOrders() " class="btn btn-primary waves-effect waves-light ">
+                                <span class="btn-label "><i class="fa fa-user "></i> </span> Customer Orders
+                        </button>
+
+
+
+                        </div>
+
+
+
+
+                        <img class="loading m-t-5 " style="margin-left: 35% " height="50px " src="assets/images/loading.gif " alt=" ">
+
+
+
+
+                        <div class="button-list pull-right m-t-15 m-l-10 ">
+
+
+
+
+
+                            <button type="button " class="btn btn-light waves-effect waves-light " id="cashier ">
+                                <span class="btn-label "><i class="glyphicon glyphicon-user "></i> </span> <span id="loggedin-user "></span>
+                         </button>
+
+                            <button id="log-out " type="button " class="btn btn-warning waves-effect waves-light ">
+                                    <i class="glyphicon glyphicon-log-out "></i>
+                            </button>
+
+
+                            <button id="quit " type="button " class="btn btn-danger waves-effect waves-light ">
+                                    <i class="glyphicon glyphicon-off "></i>
+                            </button>
+                        </div>
+
+
+
+                    </div>
+                </div>
+                <br>
+
+
+
+
+
+                <div>
+                    <div class="row ">
+                        <div class="col-md-12 ">
+                            <div class="card-box ">
+                                <div class="row ">
+                                    <h3 class="col-md-2 ">Tous Les Livres</h3>
+                                </div>
+                                <hr>
+                                <div class="row ">
+                                    <div class="col-md-12 ">
+                                        <table class="table tablesaw-enhanced " id="productList">
+                                            <thead>
+                                                <tr>
+                                                    <th>Barcode</th>
+                                                    <th>Item</th>
+                                                    <th>Name</th>
+                                                    <th>Author</th>
+                                                    <th>Stock</th>
+                                                    <th>Category</th>
+                                                    <th>Action</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="product_list"></tbody>
+                                        </table>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+
+
+
+
+
+
+
+
+            </div>
+
+        </div>
+    </div>
+
+    <!-- You can also require other files to run in this process -->
+    <!-- <script src="./renderer.js "></script> -->
+    <script>
+        window.$ = window.jQuery = require('jquery');
+    </script>
+
+    <script>
+        require('./renderer.js');
+    </script>
+
+    <script>
+        function push() {
+
+            document.getElementById("left").style.width = "250px ";
+
+            document.getElementById("container").style.marginLeft = "250px ";
+        }
+
+        function closesidebar() {
+
+            document.getElementById("left").style.width = "50px ";
+            document.getElementById("container").style.marginLeft = "50px ";
+
+        }
+    </script>
+
+    <script src="assets/plugins/bootstrap/bootstrap.min.js "></script>
+    <script src="assets/plugins/chosen/chosen.jquery.min.js "></script>
+    <script src="assets/plugins/jquery-ui/jquery.form.min.js "></script>
+    <script src="assets/plugins/daterangepicker/daterangepicker.min.js "></script>
+    <script src="assets/plugins/dataTables/jquery.dataTables.min.js "></script>
+    <script src="assets/plugins/dataTables/jquery.dataTables.bootstrap.js "></script>
+
+</body>
+
+</html>
