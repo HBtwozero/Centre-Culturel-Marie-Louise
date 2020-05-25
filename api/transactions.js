@@ -9,7 +9,7 @@ app.use(bodyParser.json());
 module.exports = app;
 
 let transactionsDB = new Datastore({
-    filename: process.env.APPDATA + "/LIBRARY2/server/databases/transactions.db",
+    filename: process.env.APPDATA + "/lms/server/databases/transactions.db",
     autoload: true
 });
 

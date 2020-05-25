@@ -8,7 +8,7 @@ const fs = require('fs');
 
 
 const storage = multer.diskStorage({
-    destination: process.env.APPDATA + '/LIBRARY2/uploads',
+    destination: process.env.APPDATA + '/lms/uploads',
     filename: function(req, file, callback) {
         callback(null, Date.now() + '.jpg'); // 
     }
@@ -22,7 +22,7 @@ module.exports = app;
 
 
 let settingsDB = new Datastore({
-    filename: process.env.APPDATA + "/LIBRARY2/server/databases/settings.db",
+    filename: process.env.APPDATA + "/lms/server/databases/settings.db",
     autoload: true
 });
 
@@ -56,7 +56,7 @@ app.post("/post", upload.single('imagename'), function(req, res) {
     }
 
     if (req.body.remove == 1) {
-        const path = process.env.APPDATA + "/LIBRARY2/uploads/" + req.body.img;
+        const path = process.env.APPDATA + "/lms/uploads/" + req.body.img;
         try {
             fs.unlinkSync(path)
         } catch (err) {

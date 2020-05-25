@@ -9,7 +9,7 @@ const fs = require('fs');
 
 
 const storage = multer.diskStorage({
-    destination: process.env.APPDATA + '/LIBRARY2/uploads',
+    destination: process.env.APPDATA + '/lms/uploads',
     filename: function(req, file, callback) {
         callback(null, Date.now() + '.jpg'); // 
     }
@@ -25,7 +25,7 @@ module.exports = app;
 
 
 let inventoryDB = new Datastore({
-    filename: process.env.APPDATA + "/LIBRARY2/server/databases/inventory.db",
+    filename: process.env.APPDATA + "/lms/server/databases/inventory.db",
     autoload: true
 });
 

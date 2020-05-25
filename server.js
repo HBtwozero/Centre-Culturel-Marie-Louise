@@ -30,9 +30,11 @@ app.get("/", function(req, res) {
 
 
 app.use("/api/inventory", require("./api/inventory"));
+app.use("/api/customers", require("./api/customers"));
 app.use("/api/categories", require("./api/categories"));
 app.use("/api/users", require("./api/users"));
 app.use("/api/settings", require("./api/settings"));
+app.use("/api", require("./api/transactions"));
 
 // app.use("/api/inventory", require("./api/inventory"));
 // app.use("/api/customers", require("./api/customers"));

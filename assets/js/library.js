@@ -32,7 +32,7 @@ let dotInterval = setInterval(function() { $(".dot").text('.') }, 3000);
 let Store = require('electron-store');
 const remote = require('electron').remote;
 const app = remote.app;
-let img_path = app.getPath('appData') + '/LIBRARY2/uploads/';
+let img_path = app.getPath('appData') + '/lms/uploads/';
 let api = 'http://' + host + ':' + port + '/api/';
 let btoa = require('btoa');
 let jsPDF = require('jspdf');
@@ -158,7 +158,7 @@ if (auth == undefined) {
         $(".loading").hide();
         loadCategories();
         loadProducts();
-        //loadCustomers();
+        loadCustomers();
 
 
         setTimeout(function() {
@@ -216,7 +216,7 @@ if (auth == undefined) {
                                         <div class="name" id="product_name">${item.name}</div> 
                                         <span class="sku">${item.sku}</span>
                                         <span class="stock">STOCK </span><span class="count">${item.stock == 1 ? item.quantity : 'N/A'}</span></div>
-                                        <sp class="text-success text-center"><b data-plugin="counterup">Auteur: ${item.author}</b> </sp>
+                                        <sp class="text-primary text-center"><b data-plugin="counterup">Auteur: ${item.author}</b> </sp>
                             </div>
                         </div>`;
                     $('#parent').append(item_info);
@@ -249,6 +249,26 @@ if (auth == undefined) {
 
 
 
+
+        function loadCustomers() {
+
+            $.get(api + 'customers/all', function(customers) {
+
+                $('#customer').html(`<option value="0" selected="selected">Client De la Biblioteque</option>`);
+
+                customers.forEach(cust => {
+
+                    let customer = `<option value='{"id": ${cust._id}, "name": "${cust.name}"}'>${cust.name}</option>`;
+                    $('#customer').append(customer);
+                });
+
+                //  $('#customer').chosen();
+
+            });
+
+        }
+
+
         $.fn.addToCart = function(id, count, stock) {
 
             if (stock == 1) {
@@ -272,6 +292,754 @@ if (auth == undefined) {
         };
 
 
+        function barcodeSearch(e) {
+
+            e.preventDefault();
+            $("#basic-addon2").empty();
+            $("#basic-addon2").append(
+                $('<i>', { class: 'fa fa-spinner fa-spin' })
+            );
+
+            let req = {
+                skuCode: $("#skuCode").val()
+            }
+
+            $.ajax({
+                url: api + 'inventory/product/sku',
+                type: 'POST',
+                data: JSON.stringify(req),
+                contentType: 'application/json; charset=utf-8',
+                cache: false,
+                processData: false,
+                success: function(data) {
+
+                    if (data._id != undefined) {
+                        $(this).addProductToCart(data);
+                        $("#searchBarCode").get(0).reset();
+                        $("#basic-addon2").empty();
+                        $("#basic-addon2").append(
+                            $('<i>', { class: 'glyphicon glyphicon-ok' })
+                        )
+                    } else {
+
+                        Swal.fire(
+                            'Not Found!',
+                            '<b>' + $("#skuCode").val() + '</b> is not a valid barcode!',
+                            'warning'
+                        );
+
+                        $("#searchBarCode").get(0).reset();
+                        $("#basic-addon2").empty();
+                        $("#basic-addon2").append(
+                            $('<i>', { class: 'glyphicon glyphicon-ok' })
+                        )
+                    }
+
+                },
+                error: function(data) {
+                    if (data.status === 422) {
+                        $(this).showValidationError(data);
+                        $("#basic-addon2").append(
+                            $('<i>', { class: 'glyphicon glyphicon-remove' })
+                        )
+                    } else if (data.status === 404) {
+                        $("#basic-addon2").empty();
+                        $("#basic-addon2").append(
+                            $('<i>', { class: 'glyphicon glyphicon-remove' })
+                        )
+                    } else {
+                        $(this).showServerError();
+                        $("#basic-addon2").empty();
+                        $("#basic-addon2").append(
+                            $('<i>', { class: 'glyphicon glyphicon-warning-sign' })
+                        )
+                    }
+                }
+            });
+
+        }
+
+
+        $("#searchBarCode").on('submit', function(e) {
+            barcodeSearch(e);
+        });
+
+
+        $('body').on('click', '#jq-keyboard button', function(e) {
+            let pressed = $(this)[0].className.split(" ");
+            if ($("#skuCode").val() != "" && pressed[2] == "enter") {
+                barcodeSearch(e);
+            }
+        });
+
+
+
+        $.fn.addProductToCart = function(data) {
+            item = {
+                id: data._id,
+                product_name: data.name,
+                sku: data.sku,
+                author: data.author,
+                quantity: 1
+            };
+
+            if ($(this).isExist(item)) {
+                $(this).qtIncrement(index);
+            } else {
+                cart.push(item);
+                $(this).renderTable(cart)
+            }
+        }
+
+
+
+        $.fn.isExist = function(data) {
+            let toReturn = false;
+            $.each(cart, function(index, value) {
+                if (value.id == data.id) {
+                    $(this).setIndex(index);
+                    toReturn = true;
+                }
+            });
+            return toReturn;
+        }
+
+
+        $.fn.setIndex = function(value) {
+            index = value;
+        }
+
+
+        $.fn.calculateCart = function() {
+            let total = 0;
+            let grossTotal;
+            $('#total').text(cart.length);
+            $.each(cart, function(index, data) {
+                // total += data.quantity * data.price;
+                total += data.quantity;
+            });
+            //total = total - $("#inputDiscount").val();
+            //$('#price').text(settings.symbol + total.toFixed(2));
+
+            subTotal = total;
+
+            // if ($("#inputDiscount").val() >= total) {
+            //     $("#inputDiscount").val(0);
+            // }
+
+            // if (settings.charge_tax) {
+            //     totalVat = ((total * vat) / 100);
+            //     grossTotal = total + totalVat
+            // } else {
+            //     grossTotal = total;
+            // }
+            //I added this on May 23 2020
+            grossTotal = total;
+            orderTotal = grossTotal.toFixed(2);
+
+            //$("#gross_price").text(settings.symbol + grossTotal.toFixed(2));
+            $("#gross_price").text(grossTotal.toFixed(2));
+            $("#payablePrice").val(grossTotal);
+        };
+
+
+
+        $.fn.renderTable = function(cartList) {
+            $('#cartTable > tbody').empty();
+            $(this).calculateCart();
+            $.each(cartList, function(index, data) {
+                $('#cartTable > tbody').append(
+                    $('<tr>').append(
+                        $('<td>', { text: index + 1 }),
+                        $('<td>', { text: data.product_name }),
+                        $('<td>').append(
+                            $('<div>', { class: 'input-group' }).append(
+                                $('<div>', { class: 'input-group-btn btn-xs' }).append(
+                                    $('<button>', {
+                                        class: 'btn btn-default btn-xs',
+                                        onclick: '$(this).qtDecrement(' + index + ')'
+                                    }).append(
+                                        $('<i>', { class: 'fa fa-minus' })
+                                    )
+                                ),
+                                $('<input>', {
+                                    class: 'form-control',
+                                    type: 'number',
+                                    value: data.quantity,
+                                    onInput: '$(this).qtInput(' + index + ')'
+                                }),
+                                $('<div>', { class: 'input-group-btn btn-xs' }).append(
+                                    $('<button>', {
+                                        class: 'btn btn-default btn-xs',
+                                        onclick: '$(this).qtIncrement(' + index + ')'
+                                    }).append(
+                                        $('<i>', { class: 'fa fa-plus' })
+                                    )
+                                )
+                            )
+                        ),
+                        // $('<td>', { text: settings.symbol + (data.price * data.quantity).toFixed(2) }),
+                        $('<td>', { text: (data.quantity).toFixed(2) }),
+                        $('<td>').append(
+                            $('<button>', {
+                                class: 'btn btn-danger btn-xs',
+                                onclick: '$(this).deleteFromCart(' + index + ')'
+                            }).append(
+                                $('<i>', { class: 'fa fa-times' })
+                            )
+                        )
+                    )
+                )
+            })
+        };
+
+
+        $.fn.deleteFromCart = function(index) {
+            cart.splice(index, 1);
+            $(this).renderTable(cart);
+
+        }
+
+
+        $.fn.qtIncrement = function(i) {
+
+            item = cart[i];
+
+            let product = allProducts.filter(function(selected) {
+                return selected._id == parseInt(item.id);
+            });
+
+            if (product[0].stock == 1) {
+                if (item.quantity < product[0].quantity) {
+                    item.quantity += 1;
+                    $(this).renderTable(cart);
+                } else {
+                    Swal.fire(
+                        'No more stock!',
+                        'You have already added all the available stock.',
+                        'info'
+                    );
+                }
+            } else {
+                item.quantity += 1;
+                $(this).renderTable(cart);
+            }
+
+        }
+
+
+        $.fn.qtDecrement = function(i) {
+            if (item.quantity > 1) {
+                item = cart[i];
+                item.quantity -= 1;
+                $(this).renderTable(cart);
+            }
+        }
+
+
+        $.fn.qtInput = function(i) {
+            item = cart[i];
+            item.quantity = $(this).val();
+            $(this).renderTable(cart);
+        }
+
+        $.fn.cancelOrder = function() {
+
+            if (cart.length > 0) {
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: "You are about to remove all items from the cart.",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Yes, clear it!'
+                }).then((result) => {
+
+                    if (result.value) {
+
+                        cart = [];
+                        $(this).renderTable(cart);
+                        holdOrder = 0;
+
+                        Swal.fire(
+                            'Cleared!',
+                            'All items have been removed.',
+                            'success'
+                        )
+                    }
+                });
+            }
+
+        }
+
+        $("#confirmPayment").on('click', function() {
+            if ($('#payment').val() == "") {
+                $(this).submitDueOrder(1);
+            }
+
+        });
+
+        $("#payButton").on('click', function() {
+            if (cart.length != 0) {
+                $("#paymentModel").modal('toggle');
+            } else {
+                Swal.fire(
+                    'Oops!',
+                    'There is nothing to pay!',
+                    'warning'
+                );
+            }
+
+        });
+
+        $("#hold").on('click', function() {
+
+            if (cart.length != 0) {
+
+                $("#dueModal").modal('toggle');
+            } else {
+                Swal.fire(
+                    'Oops!',
+                    'There is nothing to hold!',
+                    'warning'
+                );
+            }
+        });
+
+
+
+        function printJobComplete() {
+            alert("print job complete");
+        }
+
+
+
+        $.fn.submitDueOrder = function(status) {
+
+            let items = "";
+            let payment = 0;
+
+            cart.forEach(item => {
+
+                items += "<tr><td>" + item.product_name + "</td><td>" + item.quantity + "</td><td>" + item.author + "</td></tr>";
+
+            });
+
+            let currentTime = new Date(moment());
+
+
+            let customer = JSON.parse($("#customer").val());
+            let date = moment(currentTime).format("YYYY-MM-DD HH:mm:ss");
+            let paid = $("#payment").val() == "" ? "" : parseFloat($("#payment").val()).toFixed(2);
+
+            let refNumber = $("#refNumber").val();
+            let orderNumber = holdOrder;
+            let type = "";
+
+
+
+
+            if (status == 0) {
+
+                if ($("#customer").val() == 0 && $("#refNumber").val() == "") {
+                    Swal.fire(
+                        'Reference Required!',
+                        'You either need to select a customer <br> or enter a reference!',
+                        'warning'
+                    )
+
+                    return;
+                }
+            }
+
+
+            $(".loading").show();
+
+
+            if (holdOrder != 0) {
+
+                orderNumber = holdOrder;
+                method = 'PUT'
+            } else {
+                orderNumber = Math.floor(Date.now() / 1000);
+                method = 'POST'
+            }
+
+
+            receipt = `<div style="font-size: 10px;">                            
+        <p style="text-align: center;">
+        ${settings.img == "" ? settings.img : '<img style="max-width: 50px;max-width: 100px;" src ="'+ img_path+settings.img+'" /><br>'}
+            <span style="font-size: 22px;">${settings.store}</span> <br>
+            ${settings.address_one} <br>
+         
+            ${settings.contact !=  '' ? 'Tel: ' + settings.contact +'<br>' : ''} 
+            
+        </p>
+        <hr>
+        <left>
+            <p>
+            Order No : ${orderNumber} <br>
+            Ref No : ${refNumber == "" ? orderNumber : refNumber} <br>
+            Customer : ${customer == 0 ? 'Client De la Biblioteque' : customer.name} <br>
+            Cashier : ${user.fullname} <br>
+            Date : ${date}<br>
+            </p>
+
+        </left>
+        <hr>
+        <table width="100%">
+            <thead style="text-align: left;">
+            <tr>
+                <th>Livre</th>
+                <th>Qty</th>
+                <th>Author</th>
+            </tr>
+            </thead>
+            <tbody>
+            ${items}                
+            </tbody>
+            </table>
+            <br>
+            <hr>
+            <br>
+            <p style="text-align: center;">
+             ${settings.footer}
+             </p>
+            </div>`;
+
+
+            if (status == 3) {
+                if (cart.length > 0) {
+
+                    printJS({ printable: receipt, type: 'raw-html' });
+
+                    $(".loading").hide();
+                    return;
+
+                } else {
+
+                    $(".loading").hide();
+                    return;
+                }
+            }
+
+
+            let data = {
+                order: orderNumber,
+                ref_number: refNumber,
+
+                customer: customer,
+                customer_id: customer._id,
+                status: status,
+                paid: paid,
+
+                order_type: 1,
+                items: cart,
+                date: currentTime,
+                _id: orderNumber,
+                till: platform.till,
+                mac: platform.mac,
+                user: user.fullname,
+                user_id: user._id
+            }
+
+
+            $.ajax({
+                url: api + 'new',
+                type: method,
+                data: JSON.stringify(data),
+                contentType: 'application/json; charset=utf-8',
+                cache: false,
+                processData: false,
+                success: function(data) {
+
+                    cart = [];
+                    $('#viewTransaction').html('');
+                    $('#viewTransaction').html(receipt);
+                    $('#orderModal').modal('show');
+                    loadProducts();
+                    loadCustomers();
+                    $(".loading").hide();
+                    $("#dueModal").modal('hide');
+                    $("#paymentModel").modal('hide');
+                    $(this).getHoldOrders();
+                    $(this).getCustomerOrders();
+                    $(this).renderTable(cart);
+
+                },
+                error: function(data) {
+                    $(".loading").hide();
+                    $("#dueModal").modal('toggle');
+                    swal("Something went wrong!", 'Please refresh this page and try again');
+
+                }
+            });
+
+            $("#refNumber").val('');
+            $("#change").text('');
+            $("#payment").val('');
+
+        }
+
+
+        $.get(api + 'on-hold', function(data) {
+            holdOrderList = data;
+            holdOrderlocation.empty();
+            clearInterval(dotInterval);
+            $(this).randerHoldOrders(holdOrderList, holdOrderlocation, 1);
+        });
+
+        $.fn.getHoldOrders = function() {
+            $.get(api + 'on-hold', function(data) {
+                holdOrderList = data;
+                clearInterval(dotInterval);
+                holdOrderlocation.empty();
+                $(this).randerHoldOrders(holdOrderList, holdOrderlocation, 1);
+            });
+        };
+
+
+        $.fn.randerHoldOrders = function(data, renderLocation, orderType) {
+            $.each(data, function(index, order) {
+                $(this).calculatePrice(order);
+                renderLocation.append(
+                    $('<div>', { class: orderType == 1 ? 'col-md-3 order' : 'col-md-3 customer-order' }).append(
+                        $('<a>').append(
+                            $('<div>', { class: 'card-box order-box' }).append(
+                                $('<p>').append(
+                                    $('<b>', { text: 'Ref :' }),
+                                    $('<span>', { text: order.ref_number, class: 'ref_number' }),
+                                    $('<br>'),
+                                    $('<b>', { text: 'Price :' }),
+                                    $('<span>', { text: order.total, class: "label label-info", style: 'font-size:14px;' }),
+                                    $('<br>'),
+                                    $('<b>', { text: 'Items :' }),
+                                    $('<span>', { text: order.items.length }),
+                                    $('<br>'),
+                                    $('<b>', { text: 'Customer :' }),
+                                    $('<span>', { text: order.customer != 0 ? order.customer.name : 'Client De la Biblioteque', class: 'customer_name' })
+                                ),
+                                $('<button>', { class: 'btn btn-danger del', onclick: '$(this).deleteOrder(' + index + ',' + orderType + ')' }).append(
+                                    $('<i>', { class: 'fa fa-trash' })
+                                ),
+
+                                $('<button>', { class: 'btn btn-default', onclick: '$(this).orderDetails(' + index + ',' + orderType + ')' }).append(
+                                    $('<span>', { class: 'fa fa-shopping-basket' })
+                                )
+                            )
+                        )
+                    )
+                )
+            })
+        }
+
+
+        //To do 
+        $.fn.calculatePrice = function(data) {
+            ////
+        };
+
+
+
+        $.fn.orderDetails = function(index, orderType) {
+
+            $('#refNumber').val('');
+
+            if (orderType == 1) {
+
+                $('#refNumber').val(holdOrderList[index].ref_number);
+
+                $("#customer option:selected").removeAttr('selected');
+
+                $("#customer option").filter(function() {
+                    return $(this).text() == "Client De la Biblioteque";
+                }).prop("selected", true);
+
+                holdOrder = holdOrderList[index]._id;
+                cart = [];
+                $.each(holdOrderList[index].items, function(index, product) {
+                    item = {
+                        id: product.id,
+                        product_name: product.product_name,
+                        sku: product.sku,
+                        author: product.author,
+                        quantity: product.quantity
+                    };
+                    cart.push(item);
+                })
+            } else if (orderType == 2) {
+
+                $('#refNumber').val('');
+
+                $("#customer option:selected").removeAttr('selected');
+
+                $("#customer option").filter(function() {
+                    return $(this).text() == customerOrderList[index].customer.name;
+                }).prop("selected", true);
+
+
+                holdOrder = customerOrderList[index]._id;
+                cart = [];
+                $.each(customerOrderList[index].items, function(index, product) {
+                    item = {
+                        id: product.id,
+                        product_name: product.product_name,
+                        sku: product.sku,
+                        author: product.author,
+                        quantity: product.quantity
+                    };
+                    cart.push(item);
+                })
+            }
+            $(this).renderTable(cart);
+            $("#holdOrdersModal").modal('hide');
+            $("#customerModal").modal('hide');
+        }
+
+
+        $.fn.deleteOrder = function(index, type) {
+
+            switch (type) {
+                case 1:
+                    deleteId = holdOrderList[index]._id;
+                    break;
+                case 2:
+                    deleteId = customerOrderList[index]._id;
+            }
+
+            let data = {
+                orderId: deleteId,
+            }
+
+            Swal.fire({
+                title: "Delete order?",
+                text: "This will delete the order. Are you sure you want to delete!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, delete it!'
+            }).then((result) => {
+
+                if (result.value) {
+
+                    $.ajax({
+                        url: api + 'delete',
+                        type: 'POST',
+                        data: JSON.stringify(data),
+                        contentType: 'application/json; charset=utf-8',
+                        cache: false,
+                        success: function(data) {
+
+                            $(this).getHoldOrders();
+                            $(this).getCustomerOrders();
+
+                            Swal.fire(
+                                'Deleted!',
+                                'You have deleted the order!',
+                                'success'
+                            )
+
+                        },
+                        error: function(data) {
+                            $(".loading").hide();
+
+                        }
+                    });
+                }
+            });
+        }
+
+
+
+
+        $('#saveCustomer').on('submit', function(e) {
+
+            e.preventDefault();
+
+            let custData = {
+                _id: Math.floor(Date.now() / 1000),
+                name: $('#userName').val(),
+                phone: $('#phoneNumber').val(),
+                email: $('#emailAddress').val(),
+                address: $('#userAddress').val()
+            }
+
+            $.ajax({
+                url: api + 'customers/customer',
+                type: 'POST',
+                data: JSON.stringify(custData),
+                contentType: 'application/json; charset=utf-8',
+                cache: false,
+                processData: false,
+                success: function(data) {
+                    $("#newCustomer").modal('hide');
+                    Swal.fire("Kliyan an ajoute!", "Kliyan an ajoute ak sikse!", "success");
+                    $("#customer option:selected").removeAttr('selected');
+                    $('#customer').append(
+                        $('<option>', { text: custData.name, value: `{"id": ${custData._id}, "name": ${custData.name}}`, selected: 'selected' })
+                    );
+
+                    $('#customer').val(`{"id": ${custData._id}, "name": ${custData.name}}`).trigger('chosen:updated');
+
+                },
+                error: function(data) {
+                    $("#newCustomer").modal('hide');
+                    Swal.fire('Error', 'Something went wrong please try again', 'error')
+                }
+            })
+        })
+
+
+
+        $.fn.getCustomerOrders = function() {
+            $.get(api + 'customer-orders', function(data) {
+                clearInterval(dotInterval);
+                customerOrderList = data;
+                customerOrderLocation.empty();
+                $(this).randerHoldOrders(customerOrderList, customerOrderLocation, 2);
+            });
+        }
+
+
+
+
+
+
+        $('#transactions').click(function() {
+            loadTransactions();
+            loadUserList();
+
+            $('#pos_view').hide();
+            $('#pointofsale').show();
+            $('#transactions_view').show();
+            $(this).hide();
+
+        });
+
+
+        $('#pointofsale').click(function() {
+            $('#pos_view').show();
+            $('#transactions').show();
+            $('#transactions_view').hide();
+            $(this).hide();
+        });
+
+
+
+        $("#viewRefOrders").click(function() {
+            setTimeout(function() {
+                $("#holdOrderInput").focus();
+            }, 500);
+        });
+
+
+        $("#viewCustomerOrders").click(function() {
+            setTimeout(function() {
+                $("#holdCustomerOrderInput").focus();
+            }, 500);
+        });
 
 
         $('#saveProduct').submit(function(e) {
@@ -543,6 +1311,10 @@ if (auth == undefined) {
         }
 
         $('#productModal').click(function() {
+            loadProductList();
+        });
+
+        $('#livre').click(function() {
             loadProductList();
         });
 
@@ -1010,11 +1782,229 @@ if (auth == undefined) {
         $('#imagename').show(500);
     });
 
+    $('#print_list').click(function() {
+
+        $("#loading").show();
+
+        $('#productList').DataTable().destroy();
+
+        const filename = 'productList.pdf';
+
+        html2canvas($('#all_products').get(0)).then(canvas => {
+            let height = canvas.height * (25.4 / 96);
+            let width = canvas.width * (25.4 / 96);
+            let pdf = new jsPDF('p', 'mm', 'a4');
+            pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, width, height);
+
+            $("#loading").hide();
+            pdf.save(filename);
+        });
+
+
+
+        $('#productList').DataTable({
+            "order": [
+                [1, "desc"]
+            ],
+            "autoWidth": false,
+            "info": true,
+            "JQueryUI": true,
+            "ordering": true,
+            "paging": false
+        });
+
+        $(".loading").hide();
+
+    });
+
 
 }
 
 
+$.fn.print = function() {
 
+    printJS({ printable: receipt, type: 'raw-html' });
+
+}
+
+function loadTransactions() {
+
+    let tills = [];
+    let users = [];
+    let customers = [];
+    let sales = 0;
+    let transact = 0;
+    let unique = 0;
+
+    sold_items = [];
+    sold = [];
+
+    let counter = 0;
+    let transaction_list = '';
+    let query = `by-date?start=${start_date}&end=${end_date}&user=${by_user}&status=${by_status}&till=${by_till}`;
+
+
+    $.get(api + query, function(transactions) {
+
+        if (transactions.length > 0) {
+
+
+            $('#transaction_list').empty();
+            $('#transactionList').DataTable().destroy();
+
+            allTransactions = [...transactions];
+
+            transactions.forEach((trans, index) => {
+
+                sales += parseFloat(trans.total);
+                transact++;
+
+
+
+                trans.items.forEach(item => {
+                    sold_items.push(item);
+                });
+
+
+                if (!tills.includes(trans.till)) {
+                    tills.push(trans.till);
+                }
+
+                if (!users.includes(trans.user_id)) {
+                    users.push(trans.user_id);
+                }
+                if (!customers.includes(trans.customer_id)) {
+                    customers.push(trans.customer_id);
+                }
+
+                counter++;
+                transaction_list += `<tr>
+                
+                                <td>${trans.order}</td>
+                                <td class="nobr">${moment(trans.date).format('YYYY MMM DD hh:mm:ss')}</td>
+                              
+                                <td>${trans.till}</td>
+                                <td>${trans.user}</td>
+                                <td>${trans.customer.name}</td>
+                               
+                               
+                                
+                    `;
+
+                if (counter == transactions.length) {
+
+
+                    $('#total_transactions #counter').text(transact);
+
+                    const result = {};
+
+                    for (const { product_name, author, quantity, id }
+                        of sold_items) {
+                        if (!result[product_name]) result[product_name] = [];
+                        result[product_name].push({ id, author, quantity });
+                    }
+
+                    for (item in result) {
+
+
+                        let quantity = 0;
+                        let id = 0;
+
+                        result[item].forEach(i => {
+                            id = i.id;
+                            author = i.author;
+                            quantity += i.quantity;
+                        });
+
+                        sold.push({
+                            id: id,
+                            product: item,
+                            qty: quantity,
+                            author: author
+                        });
+                    }
+
+                    loadSoldProducts();
+
+
+                    if (by_user == 0 && by_till == 0) {
+
+                        userFilter(users);
+                        tillFilter(tills);
+                    }
+
+
+                    $('#transaction_list').html(transaction_list);
+                    $('#transactionList').DataTable({
+                        "order": [
+                            [1, "desc"]
+                        ],
+                        "autoWidth": false,
+                        "info": true,
+                        "JQueryUI": true,
+                        "ordering": true,
+                        "paging": true
+                    });
+                }
+            });
+        } else {
+            Swal.fire(
+                'No data!',
+                'No transactions available within the selected criteria',
+                'warning'
+            );
+        }
+
+    });
+}
+
+
+function discend(a, b) {
+    if (a.qty > b.qty) {
+        return -1;
+    }
+    if (a.qty < b.qty) {
+        return 1;
+    }
+    return 0;
+}
+
+
+function loadSoldProducts() {
+
+    sold.sort(discend);
+
+    let counter = 0;
+    let sold_list = '';
+    let items = 0;
+    let products = 0;
+    $('#product_sales').empty();
+
+    sold.forEach((item, index) => {
+
+        items += item.qty;
+        products++;
+
+        let product = allProducts.filter(function(selected) {
+            return selected._id == item.id;
+        });
+
+        counter++;
+
+        sold_list += `<tr>
+            <td>${item.product}</td>
+            <td>${item.qty}</td>
+            <td>${product[0].stock == 1 ? product.length > 0 ? product[0].quantity : '' : 'N/A'}</td>
+            <td>${item.author}</td>
+            </tr>`;
+
+        if (counter == sold.length) {
+            $('#total_items #counter').text(items);
+            $('#total_products #counter').text(products);
+            $('#product_sales').html(sold_list);
+        }
+    });
+}
 
 
 
@@ -1035,6 +2025,123 @@ function userFilter(users) {
 }
 
 
+function tillFilter(tills) {
+
+    $('#tills').empty();
+    $('#tills').append(`<option value="0">All</option>`);
+    tills.forEach(till => {
+        $('#tills').append(`<option value="${till}">${till}</option>`);
+    });
+
+}
+
+
+
+
+
+$.fn.viewTransaction = function(index) {
+
+    transaction_index = index;
+
+
+    let customer = allTransactions[index].customer == 0 ? 'Client De la Biblioteque' : allTransactions[index].customer.username;
+    ///let customer = allTransactions[index].customer.username;
+    let refNumber = allTransactions[index].ref_number != "" ? allTransactions[index].ref_number : allTransactions[index].order;
+    let orderNumber = allTransactions[index].order;
+    let items = "";
+    let products = allTransactions[index].items;
+
+    products.forEach(item => {
+        items += "<tr><td>" + item.product_name + "</td><td>" + item.quantity + "</td><td>" + +item.author + "</td></tr>";
+
+    });
+
+    receipt = `<div style="font-size: 10px;">                            
+        <p style="text-align: center;">
+        ${settings.img == "" ? settings.img : '<img style="max-width: 50px;max-width: 100px;" src ="'+ img_path+settings.img+'" /><br>'}
+            <span style="font-size: 22px;">${settings.store}</span> <br>
+            ${settings.address_one} <br>
+           
+            ${settings.contact !=  '' ? 'Tel: ' + settings.contact +'<br>' : ''} 
+         
+    </p>
+    <hr>
+    <left>
+        <p>
+        Invoice : ${orderNumber} <br>
+        Ref No : ${refNumber} <br>
+        Customer : ${allTransactions[index].customer == 0 ? 'Client De la Biblioteque' : allTransactions[index].customer.name} <br>
+        Cashier : ${allTransactions[index].user} <br>
+        Date : ${moment(allTransactions[index].date).format('DD MMM YYYY HH:mm:ss')}<br>
+        </p>
+
+    </left>
+    <hr>
+    <table width="100%">
+        <thead style="text-align: left;">
+        <tr>
+            <th>Item</th>
+            <th>Qty</th>
+            <th>Author</th>
+        </tr>
+        </thead>
+        <tbody>
+        ${items}                
+ 
+       
+        </tbody>
+        </table>
+        <br>
+        <hr>
+        <br>
+        <p style="text-align: center;">
+         ${settings.footer}
+         </p>
+        </div>`;
+
+    $('#viewTransaction').html('');
+    $('#viewTransaction').html(receipt);
+
+    $('#orderModal').modal('show');
+
+}
+
+$('#status').change(function() {
+    by_status = $(this).find('option:selected').val();
+    loadTransactions();
+});
+
+
+
+$('#tills').change(function() {
+    by_till = $(this).find('option:selected').val();
+    loadTransactions();
+});
+
+
+$('#users').change(function() {
+    by_user = $(this).find('option:selected').val();
+    loadTransactions();
+});
+
+
+
+
+
+
+
+
+$('#reportrange').on('apply.daterangepicker', function(ev, picker) {
+
+    start = picker.startDate.format('DD MMM YYYY hh:mm A');
+    end = picker.endDate.format('DD MMM YYYY hh:mm A');
+
+    start_date = picker.startDate.toDate().toJSON();
+    end_date = picker.endDate.toDate().toJSON();
+
+
+    loadTransactions();
+});
 
 function authenticate() {
     $('#loading').append(

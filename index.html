@@ -23,7 +23,7 @@
 
 <body>
     <div class="main_app">
-        <div class="left" id="left" onmouseout="closesidebar()" onmouseover="push()">
+        <div class="left btn-primary waves-effect waves-light" id="left" onmouseout="closesidebar()" onmouseover="push()">
             <ul>
 
                 <a href="#">
@@ -52,16 +52,23 @@
                     </li>
                 </a>
 
-                <a href="#">
+                <a href="gestion-loan.html">
                     <li class="item-menu">
                         <i class="fa fa-pie-chart"></i>
-                        <span class="menu"> Gestion du Personel </span>
+                        <span class="menu"> Rapport Des Loans </span>
                     </li>
                 </a>
                 <a href="#">
                     <li class="item-menu">
                         <i class="fa fa-plus"></i>
                         <span class="menu"> Ajouter Livres </span>
+                    </li>
+                </a>
+
+                <a href="tableau-livre.html" id="livre">
+                    <li class="item-menu" id="livre">
+                        <i class="fa fa-plus"></i>
+                        <span class="menu" id="livre"> Voir Tableau Livre </span>
                     </li>
                 </a>
 
@@ -99,6 +106,7 @@
                             </button>
                             </div>
 
+
                         </div>
 
 
@@ -116,6 +124,14 @@
                           </button>
 
 
+                            <!-- <button id="transactions" type="button" class="btn btn-default waves-effect waves-light p_three">
+                            <span class="btn-label"><i class=" 	glyphicon glyphicon-credit-card"></i> </span>  Transactions 
+                            </button> -->
+
+
+                            <button id="pointofsale" type="button" class="btn btn-default waves-effect waves-light">
+                                <span class="btn-label"><i class=" 	glyphicon glyphicon-shopping-cart"></i> </span>  Library Management
+                            </button>
 
 
                             <div class="btn-group p_four">
@@ -147,11 +163,6 @@
                     </div>
                 </div>
                 <br>
-
-
-
-
-
 
                 <div id="pos_view">
                     <div class="row">
@@ -234,6 +245,7 @@
                           <span class="btn-label"><i class="fa fa-hand-paper-o"></i></span>Hold
                       </button>
 
+
                                     <button type="button" id="payButton" class="btn btn-success waves-effect waves-light">
                           <span class="btn-label"><i class="fa fa-money"></i></span>Ajouter Livre
                       </button>
@@ -260,6 +272,118 @@
                                 </div>
 
                             </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="dueModal" class="modal fade bs-example-modal-sm" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel" aria-hidden="true" style="display: none;">
+                    <div class="modal-dialog modal-sm">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                                <h4 class="modal-title" id="mySmallModalLabel">Hold Order
+                                    <img class="loading m-t-5" style="margin-left: 35%" height="50px" src="assets/images/loading.gif" alt="">
+                                </h4>
+                            </div>
+                            <div class="modal-body">
+                                <form action="">
+                                    <input type="text" id="refNumber" placeholder="Enter a reference" class="form-control">
+                                </form>
+                                <hr>
+
+                                <br>
+
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" onclick="$(this).submitDueOrder(0);" class="btn btn-primary btn-block btn-lg waves-effect waves-light">Hold Order</button>
+                            </div>
+
+                        </div>
+                        <!-- /.modal-content -->
+                    </div>
+                    <!-- /.modal-dialog -->
+                </div>
+
+                <div id="paymentModel" class="modal fade bs-example-modal-lg" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true" style="display: none;">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                                <h4 class="modal-title" id="myLargeModalLabel">Payment</h4>
+                            </div>
+                            <div class="modal-body">
+                                <div class="row">
+
+                                    <div class="col-md-8">
+
+                                        <br>
+                                        <div class="input-group">
+                                            <span class="input-group-addon" id="basic-addon3">Payment  <span id="payment_curr"></span> </span>
+                                            <input type="text" placeholder="0.0" class="form-control" id="payment" aria-describedby="basic-addon3">
+                                        </div>
+                                        <hr>
+                                        <div class="row">
+
+
+                                        </div>
+                                        <br>
+                                        <div class="input-group" id="cardInfo">
+                                            <span class="input-group-addon" id="basic-addon3">Card Info </span>
+                                            <input type="text" class="form-control" id="paymentInfo" aria-describedby="basic-addon3">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="btn btn-primary btn-block btn-lg waves-effect waves-light">Change <span id="change_curr"></span><span id="change"></span> </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <button type="button" id="confirmPayment" class="btn btn-default btn-block btn-lg waves-effect waves-light">Confirm Payment</button>
+                                    </div>
+                                </div>
+
+
+                            </div>
+                        </div>
+                        <!-- /.modal-content -->
+                    </div>
+                    <!-- /.modal-dialog -->
+                </div>
+
+
+                <div id="holdOrdersModal" class="modal fade bs-example-modal-lg" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true" style="display: none;">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                                <h4 class="modal-title" id="myLargeModalLabel">Open Orders</h4>
+                            </div>
+                            <div class="modal-body">
+                                <input type="text" id="holdOrderInput" placeholder="Search order by reference" class="holdOrderInput form-control">
+                                <div class="holdOrderKeyboard"></div>
+                                <br>
+                                <div class="row" style="height: 460px;overflow-x: hidden;overflow-y:scroll" id="randerHoldOrders">
+                                    <p>please wait <span class="dot"></span> </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+
+                <div id="orderModal" class="modal fade bs-example-modal-sm" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true" style="display: none;">
+                    <div class="modal-dialog modal-sm">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button class="btn btn-sm btn-default" onclick="$(this).print()">Print</button> <br> <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                            </div>
+                            <div class="modal-body" id="viewTransaction">
+                            </div>
+
+                            <div class="alert alert-danger" style="font-size:11px;">Right-Click and Reload if you get stuck after cancelling a print.</div>
                         </div>
                     </div>
                 </div>
@@ -443,6 +567,64 @@
 
 
 
+                <div id="newCustomer" class="modal fade bs-example-modal-sm" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel" aria-hidden="true" style="display: none;">
+                    <div class="modal-dialog modal-sm">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                                <h4 class="modal-title" id="mySmallModalLabel">New Customer
+                                    <img class="loading m-t-5" style="margin-left: 35%" height="50px" src="assets/images/loading.gif" alt="">
+                                </h4>
+                            </div>
+                            <div class="modal-body">
+                                <form id="saveCustomer" data-parsley-validate>
+                                    <div class="form-group">
+                                        <label for="userName">Non Kliyan an*</label>
+                                        <input type="text" required="required" name="name" parsley-trigger="change" placeholder="Enter name" class="form-control" id="userName">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="userName">Telefonn Kliyan an</label>
+                                        <input type="text" name="phone" parsley-trigger="change" placeholder="Enter Phone number" class="form-control" id="phoneNumber">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="userName">Email Kliyan an</label>
+                                        <input type="email" name="email" parsley-trigger="change" placeholder="Enter email address" class="form-control" id="emailAddress">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="userName">Adres Kliyan an</label>
+                                        <input type="text" name="address" parsley-trigger="change" placeholder="Enter address" class="form-control" id="userAddress">
+                                    </div>
+
+                                    <input type="submit" class="btn btn-primary btn-block waves-effect waves-light">
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <div id="customerModal" class="modal fade bs-example-modal-lg" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true" style="display: none;">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                                <h4 class="modal-title" id="myLargeModalLabel">Customer Orders</h4>
+                            </div>
+                            <div class="modal-body">
+                                <input type="text" id="holdCustomerOrderInput" placeholder="Search order by customer name" class="holdCustomerOrderInput form-control">
+                                <div class="customerOrderKeyboard"></div>
+                                <br>
+                                <div class="row" style="height: 460px; overflow: scroll;" id="randerCustomerOrders">
+                                    <p>please wait <span class="dot"></span> </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+
+
                 <div id="newProduct" class="modal fade bs-example-modal-sm" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel" aria-hidden="true" style="display: none;">
                     <div class="modal-dialog modal-sm">
                         <div class="modal-content">
@@ -488,6 +670,7 @@
                         </div>
                     </div>
                 </div>
+
 
                 <div id="settingsModal" class="modal fade bs-example-modal-sm" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel" aria-hidden="true" style="display: none;">
                     <div class="modal-dialog modal-md">
@@ -611,6 +794,11 @@
                         </div>
                     </div>
                 </div>
+
+
+
+
+
 
             </div>
 

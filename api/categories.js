@@ -11,7 +11,7 @@ module.exports = app;
 
 
 let categoryDB = new Datastore({
-    filename: process.env.APPDATA + "/LIBRARY2/server/databases/categories.db",
+    filename: process.env.APPDATA + "/lms/server/databases/categories.db",
     autoload: true
 });
 

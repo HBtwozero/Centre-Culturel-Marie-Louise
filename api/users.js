@@ -9,7 +9,7 @@ module.exports = app;
 
 
 let usersDB = new Datastore({
-    filename: process.env.APPDATA + "/LIBRARY2/server/databases/users.db",
+    filename: process.env.APPDATA + "/lms/server/databases/users.db",
     autoload: true
 });
 

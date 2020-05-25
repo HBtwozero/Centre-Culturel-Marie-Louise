@@ -5,3 +5,5 @@
 // selectively enable features needed in the rendering
 // process.
 require('./assets/js/library.js');
+require('./assets/js/book-filter.js');
+require('print-js');
