@@ -4,7 +4,9 @@
     "description": "This is a library Management System Developed by Karl Doudy Angrand && Max Andy Angrand",
     "main": "main.js",
     "scripts": {
-        "start": "electron ."
+        "start": "electron .",
+        "electron-build": "electron-builder",
+        "package-win": "electron-packager . lms --overwrite --asar=false --platform=win32 --arch=x64 --icon=assets/images/icon.ico --prune=true --out=release-builds --version-string.ProductName=\"lms\""
     },
     "repository": "",
     "keywords": [
@@ -17,7 +19,9 @@
     "author": "Karl Doudy Angrand And Max Andy Angrand",
     "license": "CC0-1.0",
     "devDependencies": {
-        "electron": "^9.0.0"
+        "electron": "^9.0.0",
+        "electron-builder": "^22.6.1",
+        "package-win": "electron-packager . lms --overwrite --asar=false --platform=win32 --arch=x64 --icon=assets/images/icon.ico --prune=true --out=release-builds --version-string.ProductName=\"lms\""
     },
     "dependencies": {
         "async": "^3.2.0",
@@ -25,6 +29,7 @@
         "btoa": "^1.2.1",
         "electron-reload": "^1.5.0",
         "electron-store": "^5.1.1",
+        "electron-winstaller": "^4.0.0",
         "express": "^4.17.1",
         "express-fileupload": "^1.1.7-alpha.3",
         "html2canvas": "^1.0.0-rc.5",
