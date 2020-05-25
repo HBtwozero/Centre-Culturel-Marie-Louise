@@ -708,7 +708,6 @@ if (auth == undefined) {
              </p>
             </div>`;
 
-
             if (status == 3) {
                 if (cart.length > 0) {
 
@@ -723,7 +722,6 @@ if (auth == undefined) {
                     return;
                 }
             }
-
 
             let data = {
                 order: orderNumber,
@@ -834,13 +832,10 @@ if (auth == undefined) {
             })
         }
 
-
         //To do 
         $.fn.calculatePrice = function(data) {
             ////
         };
-
-
 
         $.fn.orderDetails = function(index, orderType) {
 
@@ -951,9 +946,6 @@ if (auth == undefined) {
             });
         }
 
-
-
-
         $('#saveCustomer').on('submit', function(e) {
 
             e.preventDefault();
@@ -991,8 +983,6 @@ if (auth == undefined) {
             })
         })
 
-
-
         $.fn.getCustomerOrders = function() {
             $.get(api + 'customer-orders', function(data) {
                 clearInterval(dotInterval);
@@ -1001,11 +991,6 @@ if (auth == undefined) {
                 $(this).randerHoldOrders(customerOrderList, customerOrderLocation, 2);
             });
         }
-
-
-
-
-
 
         $('#transactions').click(function() {
             loadTransactions();
@@ -1588,7 +1573,7 @@ if (auth == undefined) {
                     'warning'
                 );
             } else {
-                if (isNumeric(formData.till)) {
+                if ($.isNumeric(formData.till)) {
                     formData['app'] = $('#app').find('option:selected').text();
                     storage.set('settings', formData);
                     ipcRenderer.send('app-reload', '');
@@ -2123,11 +2108,6 @@ $('#users').change(function() {
     by_user = $(this).find('option:selected').val();
     loadTransactions();
 });
-
-
-
-
-
 
 
 
